@@ -34,6 +34,10 @@ function love.load()
     laser.xScale = 0.1
     laser.yScale = 0.1
 
+    gameOverIcon = pak.newObject('assets/gameover.png')
+    gameOverIcon.x = 400
+    gameOverIcon.y = 250
+
 
     enemyList = {}
     laserList = {}
@@ -57,7 +61,6 @@ end
 function love.update() 
 
     if(gameOver) then
-        gameOverText = "GAME OVER" 
         return
     end
     mouseX = love.mouse.getX()
@@ -73,14 +76,31 @@ function love.update()
 
 
 
-    if(math.random(1, 100) == 1)  and #enemyList <= 5 then
-        newEnemy = pak.newObject('assets/enemy-spaceship.png')
+    if(math.random(1, 50) == 1)  and #enemyList <= 5 then
+        -- newEnemy = pak.newObject('assets/enemy-spaceship.png')
+        -- newEnemy.x = 400 + math.random(-400, 400)
+        -- newEnemy.y = 0
+        -- newEnemy.xScale = 0.3
+        -- newEnemy.yScale = 0.3
+        -- newEnemy.alpha = 1
+        -- enemyList[#enemyList+1] = newEnemy
+
+        newEnemy = pak.newAnimationLoop("spaceship", ".png", 16)
         newEnemy.x = 400 + math.random(-400, 400)
         newEnemy.y = 0
-        newEnemy.xScale = 0.3
-        newEnemy.yScale = 0.3
+        newEnemy.xScale = 1
+        newEnemy.yScale = 1
         newEnemy.alpha = 1
         enemyList[#enemyList+1] = newEnemy
+
+    end
+
+    for index = #enemyList, 1, -1 do
+        enemy = enemyList[index]
+        enemy.currentFrame = enemy.currentFrame + 1
+        if enemy.currentFrame > 16 then
+            table.remove(enemyList, index)
+        end
     end
 
     if(love.keyboard.isDown("a")) then
@@ -171,7 +191,7 @@ function love.update()
                 newBomb.x = enemy.x
                 newBomb.y = enemy.y
                 bombList[#bombList+1] = newBomb
-                pak.playSound("bomb.wav", bombSoundList)
+
                 table.remove(laserList, index)
                 table.remove(enemyList, index2)
                 break
@@ -199,35 +219,42 @@ function love.update()
         spaceTwoBackground.y = -300
     end
 
-    if(love.keyboard.isDown("1")) then
-        newEnemyAnimation = pak.newAnimation("spaceship", ".png", 16)
-        newEnemyAnimation.x = 400
-        newEnemyAnimation.y = 300
-        enemyAnimationList[#enemyAnimationList+1] = newEnemyAnimation
-    end
+    -- if(love.keyboard.isDown("1")) then
+    --     newEnemy = pak.newAnimation("spaceship", ".png", 16)
+    --     newEnemy.x = 400
+    --     newEnemy.y = 300
+    --     enemyAnimationList[#enemyAnimationList+1] = newEnemy
 
-    for index = #enemyAnimationList, 1, -1 do
-        enemyAnimation = enemyAnimationList[index]
-        enemyAnimation.currentFrame = enemyAnimation.currentFrame + 1
-        if enemyAnimation.currentFrame > 15 then
-            table.remove(enemyAnimation, index)
-        end
-    end
+    -- end
+
+    -- for index = #enemyAnimationList, 1, -1 do
+    --     enemyAnimation = enemyAnimationList[index]
+    --     enemyAnimation.currentFrame = enemyAnimation.currentFrame + 1
+    --     if enemyAnimation.currentFrame > 16 then
+    --         table.remove(enemyAnimationList, index)
+    --     end
+    -- end
 end
 
 
 function love.draw() 
     pak.drawObject(spaceBackground)
     pak.drawObject(spaceTwoBackground)
+
     for index = 1, #laserList do
         laser = laserList[index]
         pak.drawObject(laser)
     end
     pak.drawObject(spaceship)
 
-    for index = 1, #enemyList do
+    -- for index = 1, #enemyList do
+    --     enemy = enemyList[index]
+    --     pak.drawObject(enemy)
+    -- end
+
+    for index = #enemyList, 1, -1 do
         enemy = enemyList[index]
-        pak.drawObject(enemy)
+        pak.drawAnimationLoop(enemy)
     end
 
     for index = #bombList, 1, -1 do
@@ -235,16 +262,24 @@ function love.draw()
         pak.drawAnimation(bomb)
     end
 
-    for index = #enemyAnimationList, 1, -1 do
-        enemyAnimation = enemyAnimationList[index]
-        pak.drawAnimation(enemyAnimation)
+    -- for index = #enemyAnimationList, 1, -1 do
+    --     enemyAnimation = enemyAnimationList[index]
+    --     pak.drawAnimation(enemyAnimation)
+    
+    -- end
+
+    if(gameOver) then
+        pak.drawObject(gameOverIcon)
+
     end
     
     love.graphics.setColor(1, 0, 0)
-    love.graphics.print(gameOverText, 300, 300, 0, 3, 3)
+    -- love.graphics.print(gameOverText, 300, 300, 0, 3, 3)
 
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.print("Score: " .. score, 0, 0)
+    -- love.graphics.print("Frame: " .. enemyAnimation.currentFrame, 0 ,0)
+
 
 
 end

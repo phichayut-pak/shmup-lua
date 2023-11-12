@@ -138,14 +138,44 @@ function pak.newAnimation(baseName, extension, frames)
     -- add properties to keep track of frames
     object.currentFrame = 1
     
-    
     return object
 
+end
+
+function pak.newAnimationLoop(baseName, extension, frames) 
+    -- load object with first image
+    local name = "assets/" .. baseName .. "/" .. baseName .. "1" .. extension
+    local object = pak.newObject(name)
+
+    -- add all images into list
+    object.imageList = {}
+    for index = 1, frames do
+        name = "assets/" .. baseName .. "/" .. baseName .. index .. extension
+        object.imageList[index] = love.graphics.newImage(name)
+    end
+
+    -- add properties to keep track of frames
+    object.currentFrame = 1
+    object.totalFrames = frames  -- new property to store the total number of frames
+
+    -- modify the draw function for looping
+    return object
 end
 
 function pak.drawAnimation(obj)
     love.graphics.setColor(obj.red, obj.green, obj.blue, obj.alpha)
     love.graphics.draw(obj.imageList[obj.currentFrame], obj.x, obj.y, obj.rotation, obj.xScale, obj.yScale, obj.xOrigin, obj.yOrigin)
+end
+
+function pak.drawAnimationLoop(obj)
+    love.graphics.setColor(obj.red, obj.green, obj.blue, obj.alpha)
+    love.graphics.draw(obj.imageList[obj.currentFrame], obj.x, obj.y, obj.rotation, obj.xScale, obj.yScale, obj.xOrigin, obj.yOrigin)
+
+    -- Increment the frame and loop to the beginning if it exceeds the total frames
+    obj.currentFrame = obj.currentFrame + 1
+    if obj.currentFrame > obj.totalFrames then
+        obj.currentFrame = 1
+    end
 end
 
 return pak

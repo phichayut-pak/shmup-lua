@@ -24,21 +24,40 @@ function pak.drawObject(obj)
     love.graphics.draw(obj.image, obj.x, obj.y, obj.rotation, obj.xScale, obj.yScale, obj.xOrigin, obj.yOrigin)
 end
 
+function pak.newTextObject(text, fontName, fontSize)
+    local object = {}
+    object.text = text
+    object.font = love.graphics.newFont(fontName, fontSize)
+    object.x = 0
+    object.y = 0
+    object.rotation = 0
+    object.xScale = 1
+    object.yScale = 1
+    object.width = object.font:getWidth(text)
+    object.height = object.font:getHeight(text)
+    object.xOrigin = object.width / 2
+    object.yOrigin = object.height / 2
+    object.red = 1
+    object.green = 1
+    object.blue = 1
+    object.alpha = 1
+    return object
+end
+
+function pak.drawTextObject(obj)
+    love.graphics.setColor(obj.red, obj.green, obj.blue, obj.alpha)
+    love.graphics.print(obj.text, obj.font, obj.x, obj.y, obj.rotation, obj.xScale, obj.yScale)
+end
+
 function pak.loadMusic(musicPath)
     pak.music = love.audio.newSource(musicPath, "static")
     pak.music:setLooping(true)
     love.audio.play(pak.music)
-
-    
 end
 
 function pak.stopMusic()
     pak.music:stop()
 end
-
-
-
-
 
 function pak.setupDebug()
     pak.debug = ""
@@ -172,10 +191,42 @@ function pak.drawAnimationLoop(obj)
     love.graphics.draw(obj.imageList[obj.currentFrame], obj.x, obj.y, obj.rotation, obj.xScale, obj.yScale, obj.xOrigin, obj.yOrigin)
 
     -- Increment the frame and loop to the beginning if it exceeds the total frames
+    
+    -- obj.frameSpeed = 0.1 
+    -- currentFrame = 4.7
+    -- use modulo (%) to work with this
+    -- if not 0, then no show
     obj.currentFrame = obj.currentFrame + 1
     if obj.currentFrame > obj.totalFrames then
         obj.currentFrame = 1
     end
+end 
+
+pak.fileStatus = ""
+
+function pak.saveData(score)
+    love.filesystem.write("db.txt", score)
+    pak.fileStatus = "File saved\n" .. pak.fileStatus
 end
+
+function pak.loadData()
+    if love.filesystem.getInfo("db.txt") == nil then
+        return ""
+    else
+        score = love.filesystem.read("db.txt")
+        pak.fileStatus = "File loaded: " .. score .. "\n" .. pak.fileStatus
+        return tonumber(score)
+    end
+end
+
+function pak.deleteData()
+    love.filesystem.remove("db.txt")
+    pak.fileStatus = "File deleted\n" .. pak.fileStatus
+end
+
+function addLog(log) 
+
+end
+
 
 return pak

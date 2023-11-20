@@ -2,6 +2,9 @@
 -- POWER UP
 -- BETTER SCORE 
 -- BETTER GAME OVER 
+
+
+
 pak = require("pak")
 
 function love.load()   
@@ -9,17 +12,22 @@ function love.load()
     gameOverText = ""
     math.randomseed(os.time())
 
+    blackBackground = pak.newObject('assets/background/black-bg.jpeg')
+    blackBackground.x = 300
+    blackBackground.y = 400
+    blackBackground.alpha = 0.3
+
     spaceBackground = pak.newObject('assets/background/space-bg.jpeg')
-    spaceBackground.x = 400
-    spaceBackground.y = 300
+    spaceBackground.x = 300
+    spaceBackground.y = 400
     
     spaceTwoBackground = pak.newObject('assets/background/space-bg2.jpg')
-    spaceTwoBackground.x = 400
-    spaceTwoBackground.y = -300
+    spaceTwoBackground.x = 300
+    spaceTwoBackground.y = -400
 
     spaceship = pak.newObject('assets/spaceship.png')
-    spaceship.x = 400
-    spaceship.y = 500
+    spaceship.x = 300
+    spaceship.y = 600
     spaceship.xScale = 0.35
     spaceship.yScale = 0.35
 
@@ -35,7 +43,7 @@ function love.load()
     laser.yScale = 0.1
 
     gameOverIcon = pak.newObject('assets/gameover.png')
-    gameOverIcon.x = 400
+    gameOverIcon.x = 300
     gameOverIcon.y = 250
 
 
@@ -52,15 +60,28 @@ function love.load()
 
 
     isShot = false
-    score = 0
     pak.loadMusic("music.wav")
+    
+    scoreText = pak.newTextObject("Score:000", "arcade.ttf", 24)
+    scoreText.x = 0
+    scoreText.y = 0
 
+    highscoreText = pak.newTextObject("Highscore:000", "arcade.ttf", 15)
+    highscoreText.x = 0
+    highscoreText.y = 30
+    
+    score = 0
+    loadedScore = pak.loadData()
 
 end
 
 function love.update() 
+    love.timer.sleep(1/60)
 
     if(gameOver) then
+        if(score > loadedScore) then
+            pak.saveData(score)
+        end
         return
     end
     mouseX = love.mouse.getX()
@@ -72,11 +93,11 @@ function love.update()
     laser.y = spaceship.y
     laser.rotation = spaceship.rotation
 
-    -- create bomb explosion animation
 
 
 
-    if(math.random(1, 50) == 1)  and #enemyList <= 5 then
+    if(math.random(1, 10) == 1)  and #enemyList <= 5 then
+        -- NORMAL ENEMY
         -- newEnemy = pak.newObject('assets/enemy-spaceship.png')
         -- newEnemy.x = 400 + math.random(-400, 400)
         -- newEnemy.y = 0
@@ -85,33 +106,36 @@ function love.update()
         -- newEnemy.alpha = 1
         -- enemyList[#enemyList+1] = newEnemy
 
+        -- MOVING ENEMY
         newEnemy = pak.newAnimationLoop("spaceship", ".png", 16)
-        newEnemy.x = 400 + math.random(-400, 400)
+        newEnemy.x = 300 + math.random(-300, 300)
         newEnemy.y = 0
         newEnemy.xScale = 1
         newEnemy.yScale = 1
         newEnemy.alpha = 1
+        newEnemy.rotation =  math.atan2(spaceship.y - newEnemy.y, spaceship.x - newEnemy.x) + math.pi / 2
         enemyList[#enemyList+1] = newEnemy
 
     end
 
     for index = #enemyList, 1, -1 do
         enemy = enemyList[index]
+        enemy.rotation =  math.atan2(spaceship.y - enemy.y, spaceship.x - enemy.x) + math.pi / 2
         enemy.currentFrame = enemy.currentFrame + 1
         if enemy.currentFrame > 16 then
             table.remove(enemyList, index)
         end
     end
 
-    if(love.keyboard.isDown("a")) then
+    if(love.keyboard.isDown("a") and (spaceship.x >= 50)) then
         spaceship.x = spaceship.x - speed
-    elseif (love.keyboard.isDown("d")) then
+    elseif (love.keyboard.isDown("d") and (spaceship.x <= 750)) then
         spaceship.x = spaceship.x + speed
     end
 
-    if(love.keyboard.isDown("w")) then
+    if(love.keyboard.isDown("w") and (spaceship.y >= 50)) then
         spaceship.y = spaceship.y - speed
-    elseif (love.keyboard.isDown("s")) then
+    elseif (love.keyboard.isDown("s") and (spaceship.y <= 750)) then
         spaceship.y = spaceship.y + speed
     end
 
@@ -154,6 +178,7 @@ function love.update()
         currentEnemy = enemyList[index]
         currentEnemy.y = currentEnemy.y + 2
 
+        currentEnemy.rotation =  math.atan2(spaceship.y - currentEnemy.y, spaceship.x - currentEnemy.x) + math.pi / 2
         if(enemy.alpha ~= 1) then
             enemy.alpha = enemy.alpha + 0.05
         end
@@ -186,7 +211,8 @@ function love.update()
             radius = enemy.width * enemy.xScale / 2
 
             if distance < radius then   
-                score = score + 1
+                score = score + 100
+                scoreText.text = "Score:" .. score
                 newBomb = pak.newAnimation("bomb", ".png", 15)
                 newBomb.x = enemy.x
                 newBomb.y = enemy.y
@@ -211,12 +237,12 @@ function love.update()
     spaceBackground.y = spaceBackground.y + 4
     spaceTwoBackground.y = spaceTwoBackground.y + 4
 
-    if(spaceBackground.y >= 900) then
-        spaceBackground.y = -300
+    if(spaceBackground.y >= 1200) then
+        spaceBackground.y = -400
     end 
 
-    if(spaceTwoBackground.y >= 900) then
-        spaceTwoBackground.y = -300
+    if(spaceTwoBackground.y >= 1200) then
+        spaceTwoBackground.y = -400
     end
 
     -- if(love.keyboard.isDown("1")) then
@@ -254,6 +280,7 @@ function love.draw()
 
     for index = #enemyList, 1, -1 do
         enemy = enemyList[index]
+        -- enemy.rotation = 9.4
         pak.drawAnimationLoop(enemy)
     end
 
@@ -269,7 +296,17 @@ function love.draw()
     -- end
 
     if(gameOver) then
+        pak.drawObject(blackBackground)
         pak.drawObject(gameOverIcon)
+        scoreText.x = 180
+        scoreText.y = 480
+        pak.drawTextObject(scoreText)
+
+        highscoreText.x = 195
+        highscoreText.y = 520
+        pak.drawTextObject(highscoreText)
+
+
 
     end
     
@@ -277,7 +314,11 @@ function love.draw()
     -- love.graphics.print(gameOverText, 300, 300, 0, 3, 3)
 
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.print("Score: " .. score, 0, 0)
+    if(not gameOver) then
+        pak.drawTextObject(scoreText)
+        pak.drawTextObject(highscoreText)
+        
+    end
     -- love.graphics.print("Frame: " .. enemyAnimation.currentFrame, 0 ,0)
 
 

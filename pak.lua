@@ -44,19 +44,24 @@ function pak.newTextObject(text, fontName, fontSize)
     return object
 end
 
-function pak.drawTextObject(obj)
-    love.graphics.setColor(obj.red, obj.green, obj.blue, obj.alpha)
-    love.graphics.print(obj.text, obj.font, obj.x, obj.y, obj.rotation, obj.xScale, obj.yScale)
+function pak.drawTextObject(textObject)
+    love.graphics.setColor(textObject.red, textObject.green, textObject.blue, textObject.alpha)
+    love.graphics.setFont(textObject.font)
+    love.graphics.print(textObject.text, textObject.x, textObject.y, textObject.rotation, textObject.xScale, textObject.yScale, textObject.xOrigin, textObject.yOrigin)
 end
+
 
 function pak.loadMusic(musicPath)
     pak.music = love.audio.newSource(musicPath, "static")
     pak.music:setLooping(true)
-    love.audio.play(pak.music)
 end
 
 function pak.stopMusic()
     pak.music:stop()
+end
+
+function pak.playMusic()
+    pak.music:play()
 end
 
 function pak.setupDebug()
@@ -203,29 +208,31 @@ function pak.drawAnimationLoop(obj)
 end 
 
 pak.fileStatus = ""
+pak.dataObject = nil
 
-function pak.saveData(score)
-    love.filesystem.write("db.txt", score)
+function pak.saveData()
+    dataString = json.encode(pak.dataObject)
+    love.filesystem.write("save.txt", dataString)
     pak.fileStatus = "File saved\n" .. pak.fileStatus
 end
 
 function pak.loadData()
-    if love.filesystem.getInfo("db.txt") == nil then
-        return ""
-    else
-        score = love.filesystem.read("db.txt")
-        pak.fileStatus = "File loaded: " .. score .. "\n" .. pak.fileStatus
-        return tonumber(score)
+    if love.filesystem.getInfo("save.txt") == nil then
+        pak.fileStatus = "File not found\n" .. pak.fileStatus
+        pak.dataObject = {}
+    else 
+        local dataString = love.filesystem.read("save.txt")
+        pak.fileStatus = "File loaded"
+        pak.dataObject = json.decode(dataString)
     end
 end
 
 function pak.deleteData()
-    love.filesystem.remove("db.txt")
+    love.filesystem.remove("save.txt")
     pak.fileStatus = "File deleted\n" .. pak.fileStatus
 end
-
-function addLog(log) 
-
+function pak.clearList(obj) 
+    obj = {}
 end
 
 

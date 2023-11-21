@@ -2,10 +2,6 @@
 json = require("json")
 pak = require("pak")
 
--- Initialization function called once at the beginning of the game
-json = require("json")
-pak = require("pak")
-
 function love.load()   
     gameOver = false
     gameOverText = ""
@@ -23,6 +19,16 @@ function love.load()
     spaceTwoBackground = pak.newObject('assets/background/space-bg2.jpg')
     spaceTwoBackground.x = 300
     spaceTwoBackground.y = -400
+
+    planets = pak.newObject('assets/background/planets.png')
+    planets.x = 300
+    planets.y = 400
+    planets.alpha = 0.5
+
+    planets2 = pak.newObject('assets/background/planets2.png')
+    planets2.x = 300
+    planets2.y = -400
+    planets2.alpha = 0.5
 
     spaceship = pak.newObject('assets/spaceship.png')
     spaceship.x = 300
@@ -52,6 +58,7 @@ function love.load()
     bombList = {}
     bombSoundList = {}
     enemyAnimationList = {}
+    scorePopups = {}
 
     mouseX = love.mouse.getX()
     mouseY = love.mouse.getY()
@@ -84,6 +91,7 @@ function love.load()
 end
 
 function love.update() 
+
     love.timer.sleep(1/60)
 
     if(gameOver) then
@@ -228,7 +236,7 @@ function love.update()
         end
 
 
-        if currentEnemy.x <0  - currentEnemy.height/2 then
+        if (currentEnemy.y < 0  - currentEnemy.height/2)then
             table.remove(enemyList, index)
         end
 
@@ -255,6 +263,12 @@ function love.update()
                 newBomb.y = enemy.y
                 bombList[#bombList+1] = newBomb
 
+                newPopups = pak.newTextObject(100, "arcade.ttf", 15)
+                newPopups.x = enemy.x
+                newPopups.y = enemy.y
+                newPopups.alpha = 1
+                scorePopups[#scorePopups+1] = newPopups
+
                 table.remove(laserList, index)
                 table.remove(enemyList, index2)
                 break
@@ -268,6 +282,10 @@ function love.update()
         if bomb.currentFrame > 15 then
             table.remove(bombList, index)
         end
+    end
+
+    for index = #scorePopups, 1, -1 do
+        scorePopup = scorePopups[index]
     end
 
 
@@ -309,8 +327,8 @@ function love.update()
             scoreText.y = 0 + scoreText.yOrigin
             scoreText.text = "Score:000"
 
-            loadedScroe = pak.loadData()
-            highscore = tonumber(loadedScore)   
+            -- pak.loadData()
+            highscore = pak.dataObject.highscore
             highscoreText.x = 0 + highscoreText.xOrigin
             highscoreText.y = 30 + highscoreText.yOrigin
 
@@ -420,7 +438,8 @@ function love.update()
             pak.stopMusic()
             if (score > highscore) then
                 highscore = score
-                pak.saveData(highscore)
+                pak.dataObject.highscore = highscore
+                pak.saveData()
             end
             gameOver = true
         end
@@ -479,7 +498,7 @@ function love.update()
             pak.stopMusic()
             if (score > highscore) then
                 highscore = score
-                pak.dataObject.highscore = highscore
+                pak.dataObject.highscore = score
                 pak.saveData()
             end
             gameOver = true
@@ -540,12 +559,27 @@ function love.update()
     if(spaceTwoBackground.y >= 1200) then
         spaceTwoBackground.y = -400
     end
+
+    -- Planets Parallax Scrolling
+    planets.y = planets.y + 2
+    planets2.y = planets2.y + 2
+    
+    if(planets.y >= 1200) then
+        planets.y = -400
+    end
+
+    if(planets2.y >= 1200) then
+        planets2.y = -400
+    end
 end
 
 -- Drawing game objects and handling game over state
 function love.draw() 
     pak.drawObject(spaceBackground)
     pak.drawObject(spaceTwoBackground)
+
+    pak.drawObject(planets)
+    pak.drawObject(planets2)
 
     for index = 1, #laserList do
         laser = laserList[index]
@@ -584,9 +618,13 @@ function love.draw()
 
     if(not gameOver) then
         pak.drawTextObject(scoreText)
+        highscoreText = pak.newTextObject("Highscore:" .. highscore, "arcade.ttf", 15)
+        highscoreText.x = 0 + highscoreText.xOrigin
+        highscoreText.y = 30 + highscoreText.yOrigin
         pak.drawTextObject(highscoreText)
-        
     end
+
+
 
 
 

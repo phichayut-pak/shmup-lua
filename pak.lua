@@ -231,9 +231,6 @@ function pak.deleteData()
     love.filesystem.remove("save.txt")
     pak.fileStatus = "File deleted\n" .. pak.fileStatus
 end
-function pak.clearList(obj) 
-    obj = {}
-end
 
 
 return pak

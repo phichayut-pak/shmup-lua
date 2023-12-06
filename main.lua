@@ -352,7 +352,7 @@ function love.update()
     laser.rotation = spaceship.rotation
 
     -- Enemy spawning logic
-    if(math.random(1, 10) == 1)  and #enemyList <= 5 then
+    if(math.random(1, 10) == 1) then
         -- Create a new enemy with random position and rotation towards the player
         newEnemy = pak.newAnimationLoop("spaceship", ".png", 16)
         newEnemy.x = 300 + math.random(-300, 300)
